@@ -40,13 +40,15 @@
 #'
 #' @author Avner Bar-Hen, Louise Baschet, Francois-Xavier Jollois, Jeremie Riou
 #' 
-#' @importFrom XML xmlToList xmlTreeParse
+#' @importFrom XML xmlToList xmlTreeParse htmlParse 
+#' @importFrom httr GET
+#' @importFrom utils URLencode
 #' 
 #' @seealso print.linksClass backLinks
 #' 
 #' @details
 #' This function uses the MediaWiki API query syntax: "prop=links". 
-#' For more details, see \url{https://www.mediawiki.org/wiki/API:Properties#links_.2F_pl}. 
+#' For more details, see \url{http://www.mediawiki.org/wiki/API:Properties#links_.2F_pl}. 
 #' 
 
 #' @examples 
@@ -94,12 +96,12 @@ links <- function (page=NULL,domain="en")
       # manage encoding and spaces
       pagebis <- gsub(" ",replacement ="_",x = pagebis)
       pagebis <- URLencode(iconv(pagebis,to="UTF-8"))
-      url.link  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=links&pllimit=max&format=xml", sep="")
-      url.extlink  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=extlinks&ellimit=max&format=xml", sep="")
+      url.link  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=links&pllimit=max&format=xml", sep=""))
+      url.extlink  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=extlinks&ellimit=max&format=xml", sep=""))
     }
     else {
-      url.link  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&pageids=",pagebis,"&prop=links&pllimit=max&format=xml", sep="")
-      url.extlink  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&pageids=",pagebis,"&prop=extlinks&ellimit=max&format=xml", sep="")
+      url.link  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&pageids=",pagebis,"&prop=links&pllimit=max&format=xml", sep=""))
+      url.extlink  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&pageids=",pagebis,"&prop=extlinks&ellimit=max&format=xml", sep=""))
     }
     
     # XML informations download for the specific URL
@@ -109,7 +111,7 @@ links <- function (page=NULL,domain="en")
     # Management of the pllimit argument (maximum item per page)
     while (!is.null(xml.linkbis$"query-continue")) {
       continue <-  xml.linkbis$"query-continue"$links      
-      url.link <- paste(url.link, "&plcontinue=", continue, sep = "") 
+      url.link <- GET(paste(url.link, "&plcontinue=", continue, sep = "") )
       xml.linkbis  <- xmlToList(xmlTreeParse(url.link,useInternalNodes=TRUE))
       list.link <-c(list.link, xml.linkbis$query$pages$page$links)
     }

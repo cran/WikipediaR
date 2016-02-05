@@ -18,7 +18,9 @@
 #' 
 #' @author Avner Bar-Hen, Louise Baschet, Francois-Xavier Jollois, Jeremie Riou
 #' 
-#' @importFrom XML xmlToList xmlTreeParse htmlParse
+#' @importFrom XML xmlToList xmlTreeParse htmlParse 
+#' @importFrom httr GET
+#' @importFrom utils URLencode
 #' 
 testWikiPage <- function(page =NULL, domain = "en") 
 {
@@ -50,7 +52,7 @@ testWikiPage <- function(page =NULL, domain = "en")
   }
   else{
     # try to connect to the welcome page of the specified domain
-    tryconnect <- tryCatch(htmlParse(paste("http://",domain,".wikipedia.org/", sep="")), error=function(e) e)
+    tryconnect <- tryCatch(htmlParse(GET(paste("http://",domain,".wikipedia.org/", sep=""))), error=function(e) e)
     if (any(class(tryconnect) == "XML_IO_LOAD_ERROR")  )              
     {
       test<-4 
@@ -76,7 +78,7 @@ testWikiPage <- function(page =NULL, domain = "en")
           url.part1 <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",page2, sep="")
         }
         
-        xml.page <- xmlToList(xmlTreeParse(paste(url.part1, "&prop=info&format=xml", sep= ""),useInternalNodes = TRUE))
+        xml.page <- xmlToList(xmlTreeParse(GET(paste(url.part1, "&prop=info&format=xml", sep= "")),useInternalNodes = TRUE))
         
         #-------------------------------#   
         ## verify that the page exists
@@ -89,7 +91,7 @@ testWikiPage <- function(page =NULL, domain = "en")
           
           if(any(names(xml.page$query$pages$page) =="redirect"))
           {
-            redirpage <- xmlToList(xmlTreeParse(paste(url.part1,"&prop=links&format=xml",sep=""), useInternalNodes = TRUE))$query$pages$page$links$pl [2]
+            redirpage <- xmlToList(xmlTreeParse(GET(paste(url.part1,"&prop=links&format=xml",sep="")), useInternalNodes = TRUE))$query$pages$page$links$pl [2]
             warnMessage <- c(warnMessage,paste(page,"is redirected to", redirpage))
             page2 <- gsub(" ",replacement ="_",x = redirpage)
             url.part1 <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",page2, sep="")
@@ -97,7 +99,7 @@ testWikiPage <- function(page =NULL, domain = "en")
           
           #-------------------------------#     
           ## page is ambiguous - or homonymy
-          url.cat <- paste(url.part1,"&prop=categories&continue&cllimit=500&format=xml",sep="")
+          url.cat <- GET(paste(url.part1,"&prop=categories&continue&cllimit=500&format=xml",sep=""))
           tree.page <- xmlTreeParse(url.cat,useInternalNodes = TRUE )
           xml.page.2 <- xmlToList(tree.page) 
    

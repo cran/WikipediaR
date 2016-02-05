@@ -17,22 +17,22 @@ The user is defined by his or her name. Lower/upper case letters are taking in a
  
 The domain can be specified in all the functions, by the parameter "domain". the default domain is "en" for the \url{https://en.wikipedia.org}.
  
-It provides additional information compared to others packages, as \code{WikipediR}. It does not need login.
+It provides additional information compared to others packages, as WikipediR. It does not need login.
  
-The multiplex network that can be constructed from the results of the functions of \code{WikipediaR} can be modeled as Stochastic Block Model as in  Barbillon P. et al.
+The multiplex network that can be constructed from the results of the functions of WikipediaR can be modeled as Stochastic Block Model as in  Barbillon P. et al.
 }
 \details{
 \tabular{ll}{
 Package: \tab WikipediaR\cr
 Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2015-03-23\cr
+Version: \tab 1.1\cr
+Date: \tab 2016-01-25\cr
 License: \tab GPL (>2)\cr
-Depends: \tab R (>= 2.10.0), XML (>=2.6.3) \cr
+Depends: \tab R (>= 2.10.0), XML (>=2.6.3), httr (>=1.0.0)\cr
 URL: \tab http;//www.r-project.org\cr
 Repository: \tab CRAN\cr
-Packaged: \tab 2015-04-13 12:20:44 UTC; Louise\cr
-Built: \tab R 3.1.1; ; 2015-04-13 12:20:44 UTC; windows\cr
+Packaged: \tab 2016-02-05 09:57:22 UTC; Louise\cr
+Built: \tab R 3.2.3; ; 2016-02-05 09:57:22 UTC; windows\cr
 }
 
 As part of a PRES Sorbonne Paris Cite project, Paris Descartes statisticians, computer scientists and sociologists Paris Diderot Sciences Po are working on the problem of multi-level networks. One part of the project is to analyze data extracted from Wikipedia with the free software R.
@@ -70,7 +70,7 @@ Avner Bar-Hen <Avner.Bar-Hen@mi.parisdescartes.fr>, with contributions of Louise
 
 Maintainer: Avner Bar-Hen <Avner.Bar-Hen@mi.parisdescartes.fr>
 }
-\references{Barbillon P., Donnet, S., Lazega E., and Bar-Hen A. : Stochastic Block Models for Multiplex networks: an application to networks of researchers, ArXiv 1501.06444, http://arxiv.org/abs/1501.06444}
+\references{Barbillon P., Donnet, S., Lazega E., and Bar-Hen A. : Stochastic Block Models for Multiplex networks: an application to networks of researchers, ArXiv 1501.06444, \url{http://arxiv.org/abs/1501.06444}.}
 
 \keyword{ package }
 \seealso{

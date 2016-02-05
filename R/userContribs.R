@@ -60,7 +60,8 @@
 #'
 #' @seealso userInfo
 #' 
-#' @importFrom XML xmlToList xmlTreeParse
+#' @importFrom XML xmlToList xmlTreeParse htmlParse 
+#' @importFrom httr GET
 #' @examples 
 #' \dontrun{
 #' LouiseContribs <- userContribs(user.name = "Louise", domain = "en")
@@ -96,8 +97,8 @@ userContribs <- function (user.name=NULL,domain="en", ucprop ="ids|title|timesta
  
     # URL building
     
-    url.contrib = paste("http://",domain,".wikipedia.org/w/api.php?action=query&list=usercontribs&ucprop=",ucprop,
-                        "&ucuser=", user.name, "&uclimit=500&ucdir=newer&format=xml", sep = "") 
+    url.contrib = GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&list=usercontribs&ucprop=",ucprop,
+                        "&ucuser=", user.name, "&uclimit=500&ucdir=newer&format=xml", sep = "")) 
     
     # XML informations download for the specific URL
     xml.contrib <- xmlToList(xmlTreeParse(url.contrib,useInternalNodes=TRUE))
@@ -109,7 +110,7 @@ userContribs <- function (user.name=NULL,domain="en", ucprop ="ids|title|timesta
     while (!is.null(xml.contribbis$"query-continue")) {
       continue <- xml.contribbis$"query-continue"$usercontribs
       
-      url.contrib <-  paste(url.contrib, "&uccontinue=", continue, sep = "")
+      url.contrib <-  GET(paste(url.contrib, "&uccontinue=", continue, sep = ""))
       xml.contribbis <- NULL
       xml.contribbis <- xmlToList(xmlTreeParse(url.contrib,useInternalNodes=TRUE))
       list.contrib <- c( list.contrib,xml.contribbis$query$usercontribs)

@@ -56,7 +56,9 @@
 #' @author Avner Bar-Hen, Louise Baschet, Francois-Xavier Jollois, Jeremie Riou
 #'  
 #' @seealso print.contribsClass userInfo
-#' @importFrom XML xmlToList xmlTreeParse
+#' @importFrom XML xmlToList xmlTreeParse htmlParse 
+#' @importFrom httr GET
+#' @importFrom utils URLencode
 #' @examples 
 #' \dontrun{
 #' ## numeric page identifier as parameter
@@ -65,6 +67,7 @@
 #' ## title page as parameter
 #' contribs(domain ="en", page = "Wikipedia")
 #' }
+
 #' @export 
 #' 
 #############################################################################
@@ -103,10 +106,10 @@ contribs <- function (page=NULL,domain="en", rvprop = "user|userid|timestamp"){
       # manage encoding and spaces
       pagebis <- gsub(" ",replacement ="_",x = pagebis)
       pagebis <- URLencode(iconv(pagebis,to="UTF-8"))
-      url.rev  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=revisions&rvlimit=max&format=xml&rvprop=",rvprop, sep="")
+      url.rev  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=revisions&rvlimit=max&format=xml&rvprop=",rvprop, sep=""))
      }
     else {
-      url.rev  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&pageids=",pagebis,"&prop=revisions&rvlimit=max&format=xml&rvprop=",rvprop, sep="")
+      url.rev  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&pageids=",pagebis,"&prop=revisions&rvlimit=max&format=xml&rvprop=",rvprop, sep=""))
      }
 
   
@@ -118,7 +121,7 @@ contribs <- function (page=NULL,domain="en", rvprop = "user|userid|timestamp"){
   # Management of the rvlimit argument (maximum item per page)
   while (!is.null(xml.revbis$"query-continue")) {
     continue <-  xml.revbis$"query-continue"$revisions
-    url.revbis <-  paste(url.rev, "&rvcontinue=", continue, sep = "") # create URL for the selected pageid
+    url.revbis <-  GET(paste(url.rev, "&rvcontinue=", continue, sep = "")) # create URL for the selected pageid
     xml.revbis <- NULL
     xml.revbis <- xmlToList(xmlTreeParse(url.revbis,useInternalNodes=TRUE) )
     list.rev <- c(list.rev ,xml.revbis$query$pages$page$revisions)

@@ -53,7 +53,8 @@
 #' ## try a user that does not exist (at the moment of the redaction of this help page)
 #' userInfo(user.name="Louise Baschet", domain ="fr")
 #' }
-#' @importFrom XML xmlToList xmlTreeParse
+#' @importFrom XML xmlToList xmlTreeParse htmlParse 
+#' @importFrom httr GET
 #' 
 #' @export 
 #' 
@@ -92,8 +93,8 @@ userInfo <- function (user.name=NULL, domain="en", usprop = "groups|implicitgrou
     }
     else{
       # URL building
-      url.user <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&list=users&ususers=", as.character(user.name), 
-                                "&continue&format=xml&usprop=",usprop, sep = "")
+      url.user <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&list=users&ususers=", as.character(user.name), 
+                                "&continue&format=xml&usprop=",usprop, sep = ""))
       print(url.user)
       # XML informations download for the specific URL
       xml.user <- xmlToList(xmlTreeParse(url.user ,useInternalNodes=TRUE) )

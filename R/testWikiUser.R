@@ -21,7 +21,8 @@
 
 #' @author Avner Bar-Hen, Louise Baschet, Francois-Xavier Jollois, Jeremie Riou
 #' 
-#' @importFrom XML xmlToList xmlTreeParse htmlParse
+#' @importFrom XML xmlToList xmlTreeParse htmlParse 
+#' @importFrom httr GET 
 #---------------------------------------------------------------
 
 testWikiUser <- function(user.name =NULL, domain = "en") 
@@ -54,7 +55,7 @@ testWikiUser <- function(user.name =NULL, domain = "en")
   }
   else{
     # try to connect to the welcome page of the specified domain
-    tryconnect <- tryCatch(htmlParse(paste("http://",domain,".wikipedia.org/", sep="")), error=function(e) e)
+    tryconnect <- tryCatch(htmlParse(GET(paste("http://",domain,".wikipedia.org/", sep=""))), error=function(e) e)
     if (any(class(tryconnect) == "XML_IO_LOAD_ERROR")  )              
     {
       test<-4 
@@ -76,7 +77,7 @@ testWikiUser <- function(user.name =NULL, domain = "en")
         # manage encoding and spaces
         Encoding(user.name) <- "latin1"
         # user.name2 <- gsub(" ",replacement ="_",x = user.name)
-        url.user <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&&format=xml&list=users&ususers=",user.name, sep="")
+        url.user <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&&format=xml&list=users&ususers=",user.name, sep=""))
         xml.user <- xmlToList(xmlTreeParse(url.user, useInternalNodes = TRUE))
         if (any(names(xml.user$query$users$user)=="missing")) 
         { 

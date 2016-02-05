@@ -60,8 +60,9 @@
 #' }
 #' @seealso print.backLinksClass links
 #' 
-#' @importFrom XML xmlToList xmlTreeParse
-#' 
+#' @importFrom XML xmlToList xmlTreeParse htmlParse 
+#' @importFrom httr GET
+#' @importFrom utils URLencode
 #' @export 
 #' 
 ##############################################################################
@@ -89,17 +90,17 @@ backLinks <- function (page=NULL,domain="en")
       # manage encoding and spaces
       pagebis <- gsub(" ",replacement ="_",x = pagebis)
       pagebis <- URLencode(iconv(pagebis,to="UTF-8"))
-      url.link  <- paste("http://",domain,
+      url.link  <- GET(paste("http://",domain,
                          ".wikipedia.org/w/api.php?action=query&list=backlinks&blfilterredir=all&bllimit=250&format=xml&bltitle=",
-                         pagebis,sep="")
-      url.info  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=info&format=xml", sep="")
+                         pagebis,sep=""))
+      url.info  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=info&format=xml", sep=""))
       
      }
     else {
-      url.link  <- paste("http://",domain,
+      url.link  <- GET(paste("http://",domain,
                          ".wikipedia.org/w/api.php?action=query&list=backlinks&blfilterredir=all&bllimit=250&format=xml&blpageid=",
-                         pagebis,sep="")    
-      url.info  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&pageids=",pagebis,"&prop=info&format=xml", sep="")
+                         pagebis,sep=""))    
+      url.info  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&pageids=",pagebis,"&prop=info&format=xml", sep=""))
       
     }
       
@@ -116,7 +117,7 @@ backLinks <- function (page=NULL,domain="en")
     while (!is.null(xml.linkbis$"query-continue") & (indice < 40)) {
       indice <- indice + 1
       continue <-  xml.linkbis$"query-continue"$backlinks  
-      url.link <- paste(url.link, "&blcontinue=", continue, sep = "") 
+      url.link <- GET(paste(url.link, "&blcontinue=", continue, sep = "")) 
       xml.linkbis  <- xmlToList(xmlTreeParse(url.link,useInternalNodes=TRUE))
       list.link <-c(list.link, xml.linkbis$query$backlinks)
     }
