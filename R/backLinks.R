@@ -90,35 +90,30 @@ backLinks <- function (page=NULL,domain="en")
       # manage encoding and spaces
       pagebis <- gsub(" ",replacement ="_",x = pagebis)
       pagebis <- URLencode(iconv(pagebis,to="UTF-8"))
-      url.link  <- GET(paste("http://",domain,
-                         ".wikipedia.org/w/api.php?action=query&list=backlinks&blfilterredir=all&bllimit=250&format=xml&bltitle=",
-                         pagebis,sep=""))
-      url.info  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=info&format=xml", sep=""))
-      
-     }
-    else {
-      url.link  <- GET(paste("http://",domain,
-                         ".wikipedia.org/w/api.php?action=query&list=backlinks&blfilterredir=all&bllimit=250&format=xml&blpageid=",
-                         pagebis,sep=""))    
-      url.info  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&pageids=",pagebis,"&prop=info&format=xml", sep=""))
-      
     }
-      
+
+    url.link  <- paste("http://",domain,
+                           ".wikipedia.org/w/api.php?action=query&list=backlinks&blfilterredir=all&bllimit=250&format=xml&bltitle=",
+                           pagebis,sep="")
+    get.link = GET(url.link)
+    url.info  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=info&format=xml", sep="")
+    get.info = GET(url.info)
+    
     
     # XML informations download for the specific URL
     # Parses an XML or HTML file or string containing XML/HTML content, and generates an R structure representing the XML/HTML tree
     # XMLInternalNode = TRUE : to separate pageid, ns and title
-    xml.link <- xmlToList(xmlTreeParse(url.link,useInternalNodes=TRUE) ) # Convert an XML node/document to a more R-like list
+    xml.link <- xmlToList(xmlTreeParse(get.link,useInternalNodes=TRUE) ) # Convert an XML node/document to a more R-like list
     list.link <- xml.link$query$backlinks
     xml.linkbis  <- xml.link 
     
     # management of limited number of results 
     indice <- 1
-    while (!is.null(xml.linkbis$"query-continue") & (indice < 40)) {
+    while (!is.null(xml.linkbis$"continue") & (indice < 40)) {
       indice <- indice + 1
-      continue <-  xml.linkbis$"query-continue"$backlinks  
-      url.link <- GET(paste(url.link, "&blcontinue=", continue, sep = "")) 
-      xml.linkbis  <- xmlToList(xmlTreeParse(url.link,useInternalNodes=TRUE))
+      continue <-  xml.linkbis$"continue"[1]  
+      get.link <- GET(paste(url.link, "&blcontinue=", continue, sep = "")) 
+      xml.linkbis  <- xmlToList(xmlTreeParse(get.link,useInternalNodes=TRUE))
       list.link <-c(list.link, xml.linkbis$query$backlinks)
     }
     if(indice == 40) {warning("More than 10000 pages that links to this page.")}
@@ -188,7 +183,7 @@ backLinks <- function (page=NULL,domain="en")
     
     
     } # end of at least one back link
-  xml.info <- xmlToList(xmlTreeParse(url.info,useInternalNodes=TRUE) )
+  xml.info <- xmlToList(xmlTreeParse(get.info,useInternalNodes=TRUE) )
   out$page <- c(iconv(xml.info$query$pages$page["title"],"UTF-8","UTF-8"),xml.info$query$pages$page["pageid"],domain)
     
   } # end if page and domain valid
