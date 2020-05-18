@@ -97,22 +97,23 @@ userContribs <- function (user.name=NULL,domain="en", ucprop ="ids|title|timesta
  
     # URL building
     
-    url.contrib = GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&list=usercontribs&ucprop=",ucprop,
-                        "&ucuser=", user.name, "&uclimit=500&ucdir=newer&format=xml", sep = "")) 
+    url.contrib = paste("http://",domain,".wikipedia.org/w/api.php?action=query&list=usercontribs&ucprop=",ucprop,
+                        "&ucuser=", user.name, "&uclimit=500&ucdir=newer&format=xml", sep = "")
+    get.contrib = GET(url.contrib)
     
     # XML informations download for the specific URL
-    xml.contrib <- xmlToList(xmlTreeParse(url.contrib,useInternalNodes=TRUE))
+    xml.contrib <- xmlToList(xmlTreeParse(get.contrib,useInternalNodes=TRUE))
     
     list.contrib <- xml.contrib$query$usercontribs
     xml.contribbis <- xml.contrib
-
+    
     # Management of the uclimit argument (maximum item per page)
-    while (!is.null(xml.contribbis$"query-continue")) {
-      continue <- xml.contribbis$"query-continue"$usercontribs
+    while (!is.null(xml.contribbis$"continue")) {
+      continue <- xml.contribbis$"continue"[1]
       
-      url.contrib <-  GET(paste(url.contrib, "&uccontinue=", continue, sep = ""))
+      get.contrib <-  GET(paste(url.contrib, "&uccontinue=", continue, sep = ""))
       xml.contribbis <- NULL
-      xml.contribbis <- xmlToList(xmlTreeParse(url.contrib,useInternalNodes=TRUE))
+      xml.contribbis <- xmlToList(xmlTreeParse(get.contrib,useInternalNodes=TRUE))
       list.contrib <- c( list.contrib,xml.contribbis$query$usercontribs)
     }
     out$user <- c(test$user, domain)
