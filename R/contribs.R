@@ -106,24 +106,22 @@ contribs <- function (page=NULL,domain="en", rvprop = "user|userid|timestamp"){
       # manage encoding and spaces
       pagebis <- gsub(" ",replacement ="_",x = pagebis)
       pagebis <- URLencode(iconv(pagebis,to="UTF-8"))
-      url.rev  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=revisions&rvlimit=max&format=xml&rvprop=",rvprop, sep=""))
-     }
-    else {
-      url.rev  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&pageids=",pagebis,"&prop=revisions&rvlimit=max&format=xml&rvprop=",rvprop, sep=""))
-     }
+    }
+    url.rev  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=revisions&rvlimit=max&format=xml&rvprop=",rvprop, sep="")
+    get.rev = GET(url.rev)
 
   
   # XML informations download for the specific URL
-  xml.rev <- xmlToList(xmlTreeParse(url.rev, useInternalNodes = TRUE) )
+  xml.rev <- xmlToList(xmlTreeParse(get.rev, useInternalNodes = TRUE) )
   list.rev <- xml.rev$query$pages$page$revisions
   xml.revbis <- xml.rev  
   
   # Management of the rvlimit argument (maximum item per page)
-  while (!is.null(xml.revbis$"query-continue")) {
-    continue <-  xml.revbis$"query-continue"$revisions
-    url.revbis <-  GET(paste(url.rev, "&rvcontinue=", continue, sep = "")) # create URL for the selected pageid
+  while (!is.null(xml.revbis$"continue")) { 
+    continue <-  xml.revbis$"continue"[1] 
+    get.revbis <-  GET(paste(url.rev, "&rvcontinue=", continue, sep = "")) # create URL for the selected pageid
     xml.revbis <- NULL
-    xml.revbis <- xmlToList(xmlTreeParse(url.revbis,useInternalNodes=TRUE) )
+    xml.revbis <- xmlToList(xmlTreeParse(get.revbis,useInternalNodes=TRUE) )
     list.rev <- c(list.rev ,xml.revbis$query$pages$page$revisions)
   }
   
