@@ -90,13 +90,15 @@ backLinks <- function (page=NULL,domain="en")
       # manage encoding and spaces
       pagebis <- gsub(" ",replacement ="_",x = pagebis)
       pagebis <- URLencode(iconv(pagebis,to="UTF-8"))
+      recherche = paste0("title=", pagebis)
+    } else {
+      recherche = paste0("pageid=", pagebis)
     }
 
-    url.link  <- paste("http://",domain,
-                           ".wikipedia.org/w/api.php?action=query&list=backlinks&blfilterredir=all&bllimit=250&format=xml&bltitle=",
-                           pagebis,sep="")
+    url.link  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&list=backlinks&blfilterredir=all&bllimit=250&format=xml&bl",
+                           recherche,sep="")
     get.link = GET(url.link)
-    url.info  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=info&format=xml", sep="")
+    url.info  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&",recherche,"&prop=info&format=xml", sep="")
     get.info = GET(url.info)
     
     

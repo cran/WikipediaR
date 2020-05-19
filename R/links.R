@@ -96,10 +96,13 @@ links <- function (page=NULL,domain="en")
       # manage encoding and spaces
       pagebis <- gsub(" ",replacement ="_",x = pagebis)
       pagebis <- URLencode(iconv(pagebis,to="UTF-8"))
+      recherche = paste0("titles=", pagebis)
+    } else {
+      recherche = paste0("pageids=", pagebis)
     }
-    url.link  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=links&pllimit=max&format=xml", sep="")
+    url.link  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&",recherche,"&prop=links&pllimit=max&format=xml", sep="")
     get.link = GET(url.link)
-    url.extlink  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=extlinks&ellimit=max&format=xml", sep="")
+    url.extlink  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&",recherche,"&prop=extlinks&ellimit=max&format=xml", sep="")
     get.extlink = GET(url.extlink)
     
     # XML informations download for the specific URL

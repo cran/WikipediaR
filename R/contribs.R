@@ -106,8 +106,11 @@ contribs <- function (page=NULL,domain="en", rvprop = "user|userid|timestamp"){
       # manage encoding and spaces
       pagebis <- gsub(" ",replacement ="_",x = pagebis)
       pagebis <- URLencode(iconv(pagebis,to="UTF-8"))
+      recherche = paste0("titles=", pagebis)
+    } else {
+      recherche = paste0("pageids=", pagebis)
     }
-    url.rev  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=revisions&rvlimit=max&format=xml&rvprop=",rvprop, sep="")
+    url.rev  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&",recherche,"&prop=revisions&rvlimit=max&format=xml&rvprop=",rvprop, sep="")
     get.rev = GET(url.rev)
 
   
