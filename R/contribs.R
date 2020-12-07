@@ -89,63 +89,86 @@ contribs <- function (page=NULL,domain="en", rvprop = "user|userid|timestamp"){
 
   
   # first, test validity of the page 
-  test <- testWikiPage(domain=domain, page =page)
+  test <- testWikiPage(domain = domain, page = page)
   
   # if the domain is valid and the page parameter, and page is not empty :
   if(!(test$test %in% c(2,3,4))) 
   {
     pagebis <-page    
     # if page is a vector, a matrix or a list, take only the first element
-    if (test$takeOnlyFirst) { pagebis <- unlist(page)[1]} 
+    if (test$takeOnlyFirst) { pagebis <- unlist(page)[1] } 
     # if the page is redirected, go to the redirected page 
-    if(!is.null(test$redirPage)) {pagebis <-test$redirPage }
+    if(!is.null(test$redirPage)) { pagebis <- test$redirPage }
 
     
-    if (is.character(pagebis)==TRUE)
+    if (is.character(pagebis) == TRUE)
     {
       # manage encoding and spaces
       pagebis <- gsub(" ",replacement ="_",x = pagebis)
       pagebis <- URLencode(iconv(pagebis,to="UTF-8"))
-      url.rev  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=revisions&rvlimit=max&format=xml&rvprop=",rvprop, sep=""))
-     }
-    else {
-      url.rev  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&pageids=",pagebis,"&prop=revisions&rvlimit=max&format=xml&rvprop=",rvprop, sep=""))
-     }
+      recherche = paste0("titles=", pagebis)
+    } else {
+      recherche = paste0("pageids=", pagebis)
+    }
+    url.rev  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&",recherche,"&prop=revisions&rvlimit=max&format=xml&rvprop=",rvprop, sep="")
+    get.rev = GET(url.rev)
 
   
   # XML informations download for the specific URL
-  xml.rev <- xmlToList(xmlTreeParse(url.rev, useInternalNodes = TRUE) )
+  xml.rev <- xmlToList(xmlTreeParse(get.rev, useInternalNodes = TRUE) )
   list.rev <- xml.rev$query$pages$page$revisions
   xml.revbis <- xml.rev  
   
   # Management of the rvlimit argument (maximum item per page)
-  while (!is.null(xml.revbis$"query-continue")) {
-    continue <-  xml.revbis$"query-continue"$revisions
-    url.revbis <-  GET(paste(url.rev, "&rvcontinue=", continue, sep = "")) # create URL for the selected pageid
+  while (!is.null(xml.revbis$"continue")) { 
+    continue <-  xml.revbis$"continue"[1] 
+    get.revbis <-  GET(paste(url.rev, "&rvcontinue=", continue, sep = "")) # create URL for the selected pageid
     xml.revbis <- NULL
-    xml.revbis <- xmlToList(xmlTreeParse(url.revbis,useInternalNodes=TRUE) )
+    xml.revbis <- xmlToList(xmlTreeParse(get.revbis,useInternalNodes=TRUE) )
     list.rev <- c(list.rev ,xml.revbis$query$pages$page$revisions)
   }
-  
+  assign("global_list.rev", list.rev, envir = .GlobalEnv)
+  assign("global_props", props, envir = .GlobalEnv)
 
   # Information selection
-  out$contribs <- matrix(nrow =length(list.rev), ncol = length(props) )
-  colnames(out$contribs) <- props
-  for (j in 1:length(props))
-  {
-    for (i in 1:length(list.rev)) {
-      out$contribs[i,j] <- list.rev[i]$rev[name=props[j]]
-    }  
-  }
+  # out$contribs <- matrix(nrow = length(list.rev), ncol = length(props))
+  # colnames(out$contribs) <- props
+  # out$contribs = as.data.frame(out$contribs)
+  # for (j in 1:length(props)) {
+  #   for (i in 1:length(list.rev)) {
+  #     v = list.rev[i]$rev[name = props[j]]
+  #     if (is.list(v)) { v = toString(unlist(v)) }
+  #     out$contribs[i,j] <- v
+  #   }  
+  # }
+  out$contribs = as.data.frame(t(sapply(list.rev, function (r) {
+    res = list()
+    attrs = r
+    if (any("tags" == props)) {
+      res$tags = toString(unlist(r$tags))
+      attrs = r$.attrs
+    }
+    if (any("anon" == names(attrs))) {
+      attrs = attrs[names(attrs) != "anon"]
+    }
+    if (any("flags" == props)) {
+      res$flags = names(r$.attrs[which(r$.attrs == "")])
+      attrs = r$.attrs[which(r$.attrs != "")]
+    }
+    for (p in names(attrs)) {
+      res[[p]] = attrs[p]
+    }
+    return(res)
+  })), row.names = FALSE)
   
   
   # Management of the outputs
   
   out$page <- c(iconv(xml.rev$query$pages$page$.attrs[3],"UTF-8","UTF-8"),xml.rev$query$pages$page$.attrs[1], domain)
 
-  rownames(out$contribs) <- NULL
-  colnames(out$contribs) <- unlist(strsplit(rvprop, split ="|", fixed = TRUE))
-  out$contribs <- as.data.frame(out$contribs)
+  #rownames(out$contribs) <- NULL
+  #colnames(out$contribs) <- unlist(strsplit(rvprop, split ="|", fixed = TRUE))
+  #out$contribs <- as.data.frame(out$contribs)
   }
   
   out$testWikiPage <- test

@@ -1,15 +1,15 @@
 Package: WikipediaR
 Type: Package
 Title: R-Based Wikipedia Client
-Version: 1.1
-Date: 2016-02-05
+Version: 1.2
+Date: 2020-05-19
 Authors@R: c(person("Avner", "Bar-Hen", role = c("aut", "cre"),
-    email = "Avner.Bar-Hen@mi.parisdescartes.fr"),
+    email = "avner.bar-hen@lecnam.net"),
     person("Louise", "Baschet", role = "ctb"),
     person("Francois-Xavier", "Jollois", role = "ctb"),
     person("Jeremie", "Riou", role = "ctb")
     )
-Maintainer: Avner Bar-Hen <Avner.Bar-Hen@mi.parisdescartes.fr>
+Maintainer: Avner Bar-Hen <avner.bar-hen@lecnam.net>
 Description: Provides an interface to the Wikipedia web application programming
     interface (API), using internet connexion.Three functions provide details for
     a specific Wikipedia page : all links that are present, all pages that link

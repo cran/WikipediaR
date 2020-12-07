@@ -96,30 +96,31 @@ links <- function (page=NULL,domain="en")
       # manage encoding and spaces
       pagebis <- gsub(" ",replacement ="_",x = pagebis)
       pagebis <- URLencode(iconv(pagebis,to="UTF-8"))
-      url.link  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=links&pllimit=max&format=xml", sep=""))
-      url.extlink  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&titles=",pagebis,"&prop=extlinks&ellimit=max&format=xml", sep=""))
+      recherche = paste0("titles=", pagebis)
+    } else {
+      recherche = paste0("pageids=", pagebis)
     }
-    else {
-      url.link  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&pageids=",pagebis,"&prop=links&pllimit=max&format=xml", sep=""))
-      url.extlink  <- GET(paste("http://",domain,".wikipedia.org/w/api.php?action=query&pageids=",pagebis,"&prop=extlinks&ellimit=max&format=xml", sep=""))
-    }
+    url.link  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&",recherche,"&prop=links&pllimit=max&format=xml", sep="")
+    get.link = GET(url.link)
+    url.extlink  <- paste("http://",domain,".wikipedia.org/w/api.php?action=query&",recherche,"&prop=extlinks&ellimit=max&format=xml", sep="")
+    get.extlink = GET(url.extlink)
     
     # XML informations download for the specific URL
-    xml.link <- xmlToList(xmlTreeParse(url.link,useInternalNodes=TRUE) )
+    xml.link <- xmlToList(xmlTreeParse(get.link,useInternalNodes=TRUE) )
     list.link <- xml.link$query$pages$page$links
     xml.linkbis <- xml.link
+    
     # Management of the pllimit argument (maximum item per page)
-    while (!is.null(xml.linkbis$"query-continue")) {
-      continue <-  xml.linkbis$"query-continue"$links      
-      url.link <- GET(paste(url.link, "&plcontinue=", continue, sep = "") )
-      xml.linkbis  <- xmlToList(xmlTreeParse(url.link,useInternalNodes=TRUE))
+    while (!is.null(xml.linkbis$"continue")) {
+      continue <-  xml.linkbis$"continue"[1]    
+      get.link <- GET(paste(url.link, "&plcontinue=", continue, sep = "") )
+      xml.linkbis  <- xmlToList(xmlTreeParse(get.link,useInternalNodes=TRUE))
       list.link <-c(list.link, xml.linkbis$query$pages$page$links)
     }
     # Specification of Namespace information and the others output 
     ns <- title <- nscat <- nssubj <- NULL
     
     for (i in 1:length(list.link)) {
-      
       title <- c(title,iconv(list.link[i]$pl[2],"UTF-8","UTF-8"))
       names(title) <- NULL
       ns <- c(ns,list.link[i]$pl[1])
@@ -157,22 +158,23 @@ links <- function (page=NULL,domain="en")
       if (ns[i] == -2) { nscat <- c(nscat,  "Virtual") ; nssubj <- c(nssubj,  "Media")}
       if (!(ns[i] %in% c(0,2,4,6,8,10,12,14,100,108,118,446,710,828,2600,1,3,5,7,9,11,13,15,101,109,119,447,711,829))) { nscat <- c(nscat,  "Other") ; nssubj <- c(nssubj,  "Other")}
     }
+
     ## same for external links
     # XML informations download for the specific URL
-    xml.extlink <- xmlToList(xmlTreeParse(url.extlink,useInternalNodes=TRUE) )
+    xml.extlink <- xmlToList(xmlTreeParse(get.extlink,useInternalNodes=TRUE) )
     if( any(names(xml.extlink$query$pages$page) =="extlinks") ) 
         {list.extlink <- unlist(xml.extlink$query$pages$page$extlinks)[grep("http",unlist(xml.extlink$query$pages$page$extlinks))] }
     else {list.extlink <- ""}
     xml.extlinkbis <- xml.extlink
     
     # Management of the pllimit argument (maximum item per page)
-    while (!is.null(xml.extlinkbis$"query-continue")) {
-      continue <-  xml.extlinkbis$"query-continue"$extlinks      
-      url.extlink <- paste(url.extlink, "&eloffset=", continue, sep = "") 
-      xml.extlinkbis  <- xmlToList(xmlTreeParse(url.extlink,useInternalNodes=TRUE))
+    while (!is.null(xml.extlinkbis$"continue")) {
+      continue <-  xml.extlinkbis$"continue"[1]      
+      get.extlink <- GET(paste(url.extlink, "&elcontinue=", continue, sep = ""))
+      xml.extlinkbis  <- xmlToList(xmlTreeParse(get.extlink,useInternalNodes=TRUE))
       list.extlink <-c(list.extlink, unlist(xml.extlinkbis$query$pages$page$extlinks)[grep("http",unlist(xml.extlinkbis$query$pages$page$extlinks))])
     }
-    
+
     # Management of the output
     
     out$page <- c(iconv(xml.link$query$pages$page$.attrs[3],"UTF-8","UTF-8"),xml.link$query$pages$page$.attrs[1], domain)
@@ -185,7 +187,7 @@ links <- function (page=NULL,domain="en")
     } # end at least one link
     if(length(list.extlink) >0 & !(list.extlink[1] == ""))
     {
-      out$links <- as.data.frame(out$links)
+      # out$links <- as.data.frame(out$links)
       names(list.extlink) <- NULL
       out$extlinks <- list.extlink      
     } # end at least one external link
