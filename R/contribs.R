@@ -127,28 +127,48 @@ contribs <- function (page=NULL,domain="en", rvprop = "user|userid|timestamp"){
     xml.revbis <- xmlToList(xmlTreeParse(get.revbis,useInternalNodes=TRUE) )
     list.rev <- c(list.rev ,xml.revbis$query$pages$page$revisions)
   }
-  
+  assign("global_list.rev", list.rev, envir = .GlobalEnv)
+  assign("global_props", props, envir = .GlobalEnv)
 
   # Information selection
-  out$contribs <- matrix(nrow = length(list.rev), ncol = length(props))
-  colnames(out$contribs) <- props
-  out$contribs = as.data.frame(out$contribs)
-  for (j in 1:length(props)) {
-    for (i in 1:length(list.rev)) {
-      v = list.rev[i]$rev[name = props[j]]
-      if (is.list(v)) { v = toString(unlist(v)) }
-      out$contribs[i,j] <- v
-    }  
-  }
+  # out$contribs <- matrix(nrow = length(list.rev), ncol = length(props))
+  # colnames(out$contribs) <- props
+  # out$contribs = as.data.frame(out$contribs)
+  # for (j in 1:length(props)) {
+  #   for (i in 1:length(list.rev)) {
+  #     v = list.rev[i]$rev[name = props[j]]
+  #     if (is.list(v)) { v = toString(unlist(v)) }
+  #     out$contribs[i,j] <- v
+  #   }  
+  # }
+  out$contribs = as.data.frame(t(sapply(list.rev, function (r) {
+    res = list()
+    attrs = r
+    if (any("tags" == props)) {
+      res$tags = toString(unlist(r$tags))
+      attrs = r$.attrs
+    }
+    if (any("anon" == names(attrs))) {
+      attrs = attrs[names(attrs) != "anon"]
+    }
+    if (any("flags" == props)) {
+      res$flags = names(r$.attrs[which(r$.attrs == "")])
+      attrs = r$.attrs[which(r$.attrs != "")]
+    }
+    for (p in names(attrs)) {
+      res[[p]] = attrs[p]
+    }
+    return(res)
+  })), row.names = FALSE)
   
   
   # Management of the outputs
   
   out$page <- c(iconv(xml.rev$query$pages$page$.attrs[3],"UTF-8","UTF-8"),xml.rev$query$pages$page$.attrs[1], domain)
 
-  rownames(out$contribs) <- NULL
-  colnames(out$contribs) <- unlist(strsplit(rvprop, split ="|", fixed = TRUE))
-  out$contribs <- as.data.frame(out$contribs)
+  #rownames(out$contribs) <- NULL
+  #colnames(out$contribs) <- unlist(strsplit(rvprop, split ="|", fixed = TRUE))
+  #out$contribs <- as.data.frame(out$contribs)
   }
   
   out$testWikiPage <- test
