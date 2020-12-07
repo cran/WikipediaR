@@ -89,19 +89,19 @@ contribs <- function (page=NULL,domain="en", rvprop = "user|userid|timestamp"){
 
   
   # first, test validity of the page 
-  test <- testWikiPage(domain=domain, page =page)
+  test <- testWikiPage(domain = domain, page = page)
   
   # if the domain is valid and the page parameter, and page is not empty :
   if(!(test$test %in% c(2,3,4))) 
   {
     pagebis <-page    
     # if page is a vector, a matrix or a list, take only the first element
-    if (test$takeOnlyFirst) { pagebis <- unlist(page)[1]} 
+    if (test$takeOnlyFirst) { pagebis <- unlist(page)[1] } 
     # if the page is redirected, go to the redirected page 
-    if(!is.null(test$redirPage)) {pagebis <-test$redirPage }
+    if(!is.null(test$redirPage)) { pagebis <- test$redirPage }
 
     
-    if (is.character(pagebis)==TRUE)
+    if (is.character(pagebis) == TRUE)
     {
       # manage encoding and spaces
       pagebis <- gsub(" ",replacement ="_",x = pagebis)
@@ -130,12 +130,14 @@ contribs <- function (page=NULL,domain="en", rvprop = "user|userid|timestamp"){
   
 
   # Information selection
-  out$contribs <- matrix(nrow =length(list.rev), ncol = length(props) )
+  out$contribs <- matrix(nrow = length(list.rev), ncol = length(props))
   colnames(out$contribs) <- props
-  for (j in 1:length(props))
-  {
+  out$contribs = as.data.frame(out$contribs)
+  for (j in 1:length(props)) {
     for (i in 1:length(list.rev)) {
-      out$contribs[i,j] <- list.rev[i]$rev[name=props[j]]
+      v = list.rev[i]$rev[name = props[j]]
+      if (is.list(v)) { v = toString(unlist(v)) }
+      out$contribs[i,j] <- v
     }  
   }
   
